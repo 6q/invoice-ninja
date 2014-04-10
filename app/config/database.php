@@ -54,10 +54,10 @@ return array(
 
 		'mysql' => array(
 			'driver'    => 'mysql',
-			'host'      => 'localhost',
-			'database'  => 'ninja',
-			'username'  => 'ninja',
-			'password'  => 'ninja',
+			'host'      => '192.168.1.4',
+			'database'  => 'invoice',
+			'username'  => 'dbuser',
+			'password'  => 'dbuser',
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
 			'prefix'    => '',

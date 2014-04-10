@@ -91,7 +91,7 @@
         <span class="icon-bar"></span>
       </button>
       <a href="{{ URL::to('/') }}" class='navbar-brand'>
-        <img src="{{ asset('images/invoiceninja-logo.png') }}" style="height:18px;width:auto"/>
+        CEDASE
       </a>	    
     </div>
 
