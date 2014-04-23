@@ -89,13 +89,8 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-<<<<<<< HEAD
       <a href="{{ URL::to('/') }}" class='navbar-brand'>
         CEDASE
-=======
-      <a href="{{ Utils::isNinja() || Auth::check() ? URL::to('/') : NINJA_URL }}" class='navbar-brand'>
-        <img src="{{ asset('images/invoiceninja-logo.png') }}" style="height:18px;width:auto"/>
->>>>>>> remotes/origin/master
       </a>	    
     </div>
 

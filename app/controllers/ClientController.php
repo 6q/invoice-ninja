@@ -60,8 +60,7 @@ class ClientController extends \BaseController {
     	    ->make();    	    
     }
 
-
-<<<<<<< HEAD
+/*
 		$data = array(
 			'client' => null, 
 			'method' => 'POST', 
@@ -75,8 +74,7 @@ class ClientController extends \BaseController {
 
 		return View::make('clients.edit', $data);
 	}
-=======
->>>>>>> remotes/origin/master
+*/
 
 	/**
 	 * Store a newly created resource in storage.
