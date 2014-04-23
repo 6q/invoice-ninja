@@ -178,7 +178,7 @@ class Account extends Eloquent
 		Session::put(SESSION_DATE_PICKER_FORMAT, $this->date_format ? $this->date_format->picker_format : DEFAULT_DATE_PICKER_FORMAT);
 		Session::put(SESSION_DATETIME_FORMAT, $this->datetime_format ? $this->datetime_format->format : DEFAULT_DATETIME_FORMAT);			
 		Session::put(SESSION_CURRENCY, $this->currency_id ? $this->currency_id : DEFAULT_CURRENCY);		
-		Session::put(SESSION_LOCALE, $this->language_id ? $this->language->locale : DEFUALT_LOCALE);
+		Session::put(SESSION_LOCALE, $this->language_id ? $this->language->locale : DEFAULT_LOCALE);
 	}
 
 	public function getInvoiceLabels()
@@ -213,4 +213,30 @@ class Account extends Eloquent
 		return $data;
 	}
 	
+	public function isPro()
+	{
+		if (Utils::isNinja())
+		{
+			return true;
+		}
+
+		if ($this->account_key == NINJA_ACCOUNT_KEY)
+		{
+			return true;
+		}
+
+		$datePaid = $this->pro_plan_paid;
+
+		if (!$datePaid || $datePaid == '0000-00-00')
+		{
+			return false;
+		}
+
+		$today = new DateTime('now');
+		$datePaid = DateTime::createFromFormat('Y-m-d', $datePaid);		
+		$interval = $today->diff($datePaid);
+		
+		return $interval->y == 0;
+	}
+
 }

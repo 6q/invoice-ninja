@@ -1,19 +1,22 @@
 <?php
 
 use ninja\repositories\AccountRepository;
-use ninja\mailers\UserMailer as Mailer;
+use ninja\mailers\UserMailer;
+use ninja\mailers\ContactMailer;
 
 class AccountController extends \BaseController {
 
 	protected $accountRepo;
-	protected $mailer;
+	protected $userMailer;
+	protected $contactMailer;
 
-	public function __construct(AccountRepository $accountRepo, Mailer $mailer)
+	public function __construct(AccountRepository $accountRepo, UserMailer $userMailer, ContactMailer $contactMailer)
 	{
 		parent::__construct();
 
 		$this->accountRepo = $accountRepo;
-		$this->mailer = $mailer;
+		$this->userMailer = $userMailer;
+		$this->contactMailer = $contactMailer;
 	}	
 
 	public function getStarted()
@@ -28,7 +31,6 @@ class AccountController extends \BaseController {
 
 		if ($guestKey) 
 		{
-			//$user = User::where('password', '=', $guestKey)->firstOrFail();
 			$user = User::where('password', '=', $guestKey)->first();
 
 			if ($user && $user->registered)
@@ -53,80 +55,14 @@ class AccountController extends \BaseController {
 
 	public function enableProPlan()
 	{		
-		if (Auth::user()->isPro())
+		$invoice = $this->accountRepo->enableProPlan();
+
+		if ($invoice)
 		{
-			return Redirect::to('/dashboard');		
+			$this->contactMailer->sendInvoice($invoice);
 		}
 
-		$account = Auth::user()->account;
-
-		$ninjaAccount = $this->getNinjaAccount();
-		$ninjaClient = $this->getNinjaClient($ninjaAccount);
-
-		//$invoice = new Invoice();
-		//$ninjaClient->invoices()->save($invoice);
-	}
-
-	private function getNinjaAccount()
-	{
-		$account = Account::whereAccountKey(NINJA_ACCOUNT_KEY)->first();
-
-		if ($account)
-		{
-			return $account;	
-		}
-		else
-		{
-			$account = new Account();
-			$account->name = 'Invoice Ninja';
-			$account->work_email = 'contact@invoiceninja.com';
-			$account->work_phone = '(800) 763-1948';
-			$account->account_key = NINJA_ACCOUNT_KEY;
-			$account->save();
-
-			$random = str_random(RANDOM_KEY_LENGTH);
-
-			$user = new User();
-			$user->email = 'contact@invoiceninja.com';
-			$user->password = $random;
-			$user->password_confirmation = $random;			
-			$user->username = $random;
-			$user->notify_sent = false;
-			$user->notify_paid = false;
-			$account->users()->save($user);			
-		}
-
-		return $account;
-	}
-
-	private function getNinjaClient($ninjaAccount)
-	{
-		$client = Client::whereAccountId($ninjaAccount->id)->wherePublicId(Auth::user()->account_id)->first();
-
-		if ($client)
-		{
-			return $client;
-		}
-		else
-		{			
-			$client = new Client;		
-			$client->public_id = Auth::user()->account_id;
-			$client->user_id = $ninjaAccount->users()->first()->id;
-			foreach (['name', 'address1', 'address2', 'city', 'state', 'postal_code', 'country_id', 'work_phone'] as $field) 
-			{
-				$client->$field = Auth::user()->account->$field;
-			}		
-			$ninjaAccount->clients()->save($client);
-
-			$contact = new Contact;
-			$contact->user_id = $ninjaAccount->users()->first()->id;
-			$contact->is_primary = true;
-			foreach (['first_name', 'last_name', 'email', 'phone'] as $field) 
-			{
-				$contact->$field = Auth::user()->$field;	
-			}		
-			$client->contacts()->save($contact);
-		}
+		return RESULT_SUCCESS;		
 	}
 
 	public function setTrashVisible($entityType, $visible)
@@ -165,24 +101,66 @@ class AccountController extends \BaseController {
 			$account = Account::with('account_gateways')->findOrFail(Auth::user()->account_id);
 			$accountGateway = null;
 			$config = null;
+			$configFields = null;
 
 			if (count($account->account_gateways) > 0)
 			{
 				$accountGateway = $account->account_gateways[0];
 				$config = $accountGateway->config;
-			}			
 
+				$configFields = json_decode($config);
+				
+				foreach($configFields as $configField => $value)
+				{
+					$configFields->$configField = str_repeat('*', strlen($value));
+				}
+			}
+			
+			$recommendedGateways = Gateway::remember(DEFAULT_QUERY_CACHE)
+					->where('recommended', '=', '1')
+					->orderBy('sort_order')
+					->get();
+			$recommendedGatewayArray = array();
+			
+			foreach($recommendedGateways as $recommendedGateway)
+			{
+				$arrayItem = array(
+					'value' => $recommendedGateway->id,
+					'other' => 'false',
+					'data-imageUrl' => $recommendedGateway->getLogoUrl(),
+					'data-siteUrl' => $recommendedGateway->site_url
+				);
+				$recommendedGatewayArray[$recommendedGateway->name] = $arrayItem;
+			}
+
+			$otherItem = array(
+				'value' => 1000000,
+				'other' => 'true',
+				'data-imageUrl' => '',
+				'data-siteUrl' => ''
+			);
+			$recommendedGatewayArray['Other Options'] = $otherItem;
+			
 			$data = [
 				'account' => $account,
 				'accountGateway' => $accountGateway,
-				'config' => json_decode($config),
-				'gateways' => Gateway::remember(DEFAULT_QUERY_CACHE)->get(),
+				'config' => $configFields,
+				'gateways' => Gateway::remember(DEFAULT_QUERY_CACHE)
+					->orderBy('name')
+					->get(),
+				'dropdownGateways' => Gateway::remember(DEFAULT_QUERY_CACHE)
+					->where('recommended', '=', '0')
+					->orderBy('name')
+					->get(),
+				'recommendedGateways' => $recommendedGatewayArray,
 			];
 			
 			foreach ($data['gateways'] as $gateway)
 			{
-				$gateway->fields = Omnipay::create($gateway->provider)->getDefaultParameters();				
+				$paymentLibrary =  $gateway->paymentlibrary;
 
+				$gateway->fields = $gateway->getFields();	
+	
 				if ($accountGateway && $accountGateway->gateway_id == $gateway->id)
 				{
 					$accountGateway->fields = $gateway->fields;						
@@ -203,6 +181,14 @@ class AccountController extends \BaseController {
 		{
 			return View::make('accounts.import_export');	
 		}	
+		else if ($section == ACCOUNT_CUSTOM_FIELDS)
+		{
+			$data = [
+				'account' => Auth::user()->account
+			];
+
+			return View::make('accounts.custom_fields', $data);	
+		}
 	}
 
 	public function doSection($section = ACCOUNT_DETAILS)
@@ -231,6 +217,26 @@ class AccountController extends \BaseController {
 		{
 			return AccountController::export();
 		}		
+		else if ($section == ACCOUNT_CUSTOM_FIELDS)
+		{
+			return AccountController::saveCustomFields();
+		}
+	}
+
+	private function saveCustomFields()
+	{
+		$account = Auth::user()->account;
+
+		$account->custom_label1 = Input::get('custom_label1');
+		$account->custom_value1 = Input::get('custom_value1');
+		$account->custom_label2 = Input::get('custom_label2');
+		$account->custom_value2 = Input::get('custom_value2');
+		$account->custom_client_label1 = Input::get('custom_client_label1');
+		$account->custom_client_label2 = Input::get('custom_client_label2');		
+		$account->save();
+
+		Session::flash('message', trans('texts.updated_settings'));
+		return Redirect::to('company/custom_fields');		
 	}
 
 	private function export()
@@ -393,9 +399,9 @@ class AccountController extends \BaseController {
 		$csv->heading = false;
 		$csv->auto($name);
 		
-		if (count($csv->data) + Client::scope()->count() > MAX_NUM_CLIENTS)
+		if (count($csv->data) + Client::scope()->count() > Auth::user()->getMaxNumClients())
 		{
-			$message = Utils::pluralize('limit_clients', MAX_NUM_CLIENTS);
+			$message = Utils::pluralize('limit_clients', Auth::user()->getMaxNumClients());
 			Session::flash('error', $message);
 			return Redirect::to('company/import_export');
 		}
@@ -489,7 +495,7 @@ class AccountController extends \BaseController {
 
 	private function saveNotifications()
 	{
-		$account = Account::findOrFail(Auth::user()->account_id);			
+		$account = Auth::user()->account;
 		$account->invoice_terms = Input::get('invoice_terms');
 		$account->email_footer = Input::get('email_footer');
 		$account->save();
@@ -506,18 +512,37 @@ class AccountController extends \BaseController {
 
 	private function savePayments()
 	{
+		Validator::extend('notmasked', function($attribute, $value, $parameters)
+		{
+		    return $value != str_repeat('*', strlen($value));
+		});
+		
 		$rules = array();
+		$recommendedId = Input::get('recommendedGateway_id');
 
-		if ($gatewayId = Input::get('gateway_id')) 
+		if ($gatewayId = $recommendedId == 1000000 ? Input::get('gateway_id') : $recommendedId) 
 		{
 			$gateway = Gateway::findOrFail($gatewayId);
-			$fields = Omnipay::create($gateway->provider)->getDefaultParameters();
+			
+			$paymentLibrary =  $gateway->paymentlibrary;
+			
+			$fields = $gateway->getFields();
 			
 			foreach ($fields as $field => $details)
 			{
 				if (!in_array($field, ['testMode', 'developerMode', 'headerImageUrl', 'solutionType', 'landingPage', 'brandName']))
 				{
-					$rules[$gateway->id.'_'.$field] = 'required';
+					if(strtolower($gateway->name) == 'beanstream')
+					{
+						if(in_array($field, ['merchant_id', 'passCode']))
+						{
+							$rules[$gateway->id.'_'.$field] = 'required|notmasked';
+						}
+					} 
+					else 
+					{
+						$rules[$gateway->id.'_'.$field] = 'required|notmasked';
+					}
 				}				
 			}			
 		}
@@ -662,7 +687,7 @@ class AccountController extends \BaseController {
 		$user->registered = true;
 		$user->amend();
 
-		$this->mailer->sendConfirmation($user);
+		$this->userMailer->sendConfirmation($user);
 
 		$activities = Activity::scope()->get();
 		foreach ($activities as $activity) 
@@ -670,6 +695,13 @@ class AccountController extends \BaseController {
 			$activity->message = str_replace('Guest', $user->getFullName(), $activity->message);
 			$activity->save();
 		}
+
+		if (Input::get('go_pro') == 'true')
+		{
+			Session::set(REQUESTED_PRO_PLAN, true);
+		}
+
+		Session::set(SESSION_COUNTER, -1);
 
 		return "{$user->first_name} {$user->last_name}";
 	}

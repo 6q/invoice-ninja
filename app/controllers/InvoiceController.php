@@ -142,6 +142,7 @@ class InvoiceController extends \BaseController {
 
 		$invoice->invoice_date = Utils::fromSqlDate($invoice->invoice_date);
 		$invoice->due_date = Utils::fromSqlDate($invoice->due_date);
+		$invoice->is_pro = $client->account->isPro();
 
 		$data = array(
 			'showBreadcrumbs' => false,
@@ -155,21 +156,22 @@ class InvoiceController extends \BaseController {
 
 	public function edit($publicId)
 	{
-		$invoice = Invoice::scope($publicId)->withTrashed()->with('account.country', 'client.contacts', 'client.country', 'invoice_items')->firstOrFail();
+		$invoice = Invoice::scope($publicId)->withTrashed()->with('invitations', 'account.country', 'client.contacts', 'client.country', 'invoice_items')->firstOrFail();
 		Utils::trackViewed($invoice->invoice_number . ' - ' . $invoice->client->getDisplayName(), ENTITY_INVOICE);
 	
 		$invoice->invoice_date = Utils::fromSqlDate($invoice->invoice_date);
 		$invoice->due_date = Utils::fromSqlDate($invoice->due_date);
 		$invoice->start_date = Utils::fromSqlDate($invoice->start_date);
 		$invoice->end_date = Utils::fromSqlDate($invoice->end_date);
+		$invoice->is_pro = Auth::user()->isPro();
 
-    	$contactIds = DB::table('invitations')
-    				->join('contacts', 'contacts.id', '=','invitations.contact_id')
-    				->where('invitations.invoice_id', '=', $invoice->id)
-					->where('invitations.account_id', '=', Auth::user()->account_id)
-    				->where('invitations.deleted_at', '=', null)
-    				->select('contacts.public_id')->lists('public_id');
-    	
+  	$contactIds = DB::table('invitations')
+			->join('contacts', 'contacts.id', '=','invitations.contact_id')
+			->where('invitations.invoice_id', '=', $invoice->id)
+			->where('invitations.account_id', '=', Auth::user()->account_id)
+			->where('invitations.deleted_at', '=', null)
+			->select('contacts.public_id')->lists('public_id');
+	
 		$data = array(
 				'showBreadcrumbs' => false,
 				'account' => $invoice->account,
@@ -180,7 +182,28 @@ class InvoiceController extends \BaseController {
 				'url' => 'invoices/' . $publicId, 
 				'title' => '- ' . $invoice->invoice_number,
 				'client' => $invoice->client);
-		$data = array_merge($data, InvoiceController::getViewModel());
+		$data = array_merge($data, self::getViewModel());
+
+		// Set the invitation link on the client's contacts
+		$clients = $data['clients'];
+		foreach ($clients as $client)
+		{
+			if ($client->id == $invoice->client->id)
+			{
+				foreach ($invoice->invitations as $invitation)
+				{
+					foreach ($client->contacts as $contact)
+					{
+						if ($invitation->contact_id == $contact->id)
+						{
+							$contact->invitation_link = $invitation->getLink();
+						}
+					}				
+				}
+				break;
+			}
+		}
+	
 		return View::make('invoices.edit', $data);
 	}
 
@@ -204,11 +227,11 @@ class InvoiceController extends \BaseController {
 				'url' => 'invoices', 
 				'title' => '- Nueva Factura',
 				'client' => $client);
-		$data = array_merge($data, InvoiceController::getViewModel());				
+		$data = array_merge($data, self::getViewModel());				
 		return View::make('invoices.edit', $data);
 	}
 
-	public static function getViewModel()
+	private static function getViewModel()
 	{
 		return [
 			'account' => Auth::user()->account,
@@ -309,6 +332,10 @@ class InvoiceController extends \BaseController {
 					$invitation->invitation_key = str_random(RANDOM_KEY_LENGTH);
 					$invitation->save();
 				}				
+				else if (!in_array($contact->id, $sendInvoiceIds) && $invitation)
+				{
+					$invitation->delete();
+				}
 			}						
 
 			$message = trans($publicId ? 'texts.updated_invoice' : 'texts.created_invoice');
@@ -328,6 +355,7 @@ class InvoiceController extends \BaseController {
 			{	
 				if (Auth::user()->confirmed)
 				{
+					$message = trans('texts.emailed_invoice');
 					$this->mailer->sendInvoice($invoice);
 					Session::flash('message', $message);
 				}

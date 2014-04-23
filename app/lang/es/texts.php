@@ -305,5 +305,17 @@ return array(
   'erase_data' => 'Esto va a borrar la información definitivamente.',
   'password' => 'Contraseña',
     
+  'pro_plan_product' => 'Pro Plan',
+  'pro_plan_description' => 'One year enrollment in the Invoice Ninja Pro Plan.',
+  'pro_plan_success' => 'Thanks for joining! Once the invoice is paid your Pro Plan membership will begin.',
+
+  'unsaved_changes' => 'You have unsaved changes',
+  'custom_fields' => 'Custom fields',
+  'company_fields' => 'Company Fields',
+  'client_fields' => 'Client Fields',
+  'field_label' => 'Field Label',
+  'field_value' => 'Field Value',
+  'edit' => 'Edit',
+  'view_invoice' => 'View invoice',
     
 );

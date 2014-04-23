@@ -19,9 +19,18 @@
     <meta property="og:description" content="Facturación de Cedase."></meta>
     <meta name="keywords" content="Cedase Facturación"></meta>    
     
-    <script src="{{ asset('vendor/jquery/dist/jquery.min.js') }}" type="text/javascript"></script>  
-
+    @if (File::exists('vendor/jquery/jquery.js'))
+      <script src="{{ asset('vendor/jquery/jquery.js') }}" type="text/javascript"></script>  
+    @elseif (File::exists('vendor/jquery/dist/jquery.js'))
+      <script src="{{ asset('vendor/jquery/dist/jquery.js') }}" type="text/javascript"></script>  
+    @else
+      {{ die('Error: Failed to find jQuery') }}
+    @endif
+ 
     <script type="text/javascript">
+    var NINJA = NINJA || {};      
+    NINJA.isRegistered = {{ Utils::isRegistered() ? 'true' : 'false' }};    
+    
     window.onerror = function(e) {
       try {
         $.ajax({
@@ -46,19 +55,37 @@
 
   <body>
 
-  @if (App::environment() == ENV_PRODUCTION && isset($_ENV['ANALYTICS_KEY']) && $_ENV['ANALYTICS_KEY'])  
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    @if (App::environment() == ENV_PRODUCTION && isset($_ENV['ANALYTICS_KEY']) && $_ENV['ANALYTICS_KEY'])  
+      <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-      ga('create', '{{ $_ENV['ANALYTICS_KEY'] }}');
-      ga('send', 'pageview');
-    </script>
-  @endif
+        ga('create', '{{ $_ENV['ANALYTICS_KEY'] }}');
+        ga('send', 'pageview');
+      </script>
+    @endif
 
     @yield('body')
+
+    <script type="text/javascript">
+      NINJA.formIsChanged = false;
+      $(function() {      
+        $('form.warn-on-exit input, form.warn-on-exit textarea, form.warn-on-exit select').change(function() {
+          NINJA.formIsChanged = true;      
+        }); 
+      });
+      $('form').submit(function() {
+        NINJA.formIsChanged = false;
+      });
+      $(window).on('beforeunload', function() {
+        if (NINJA.formIsChanged) {
+          return "{{ trans('texts.unsaved_changes') }}";
+        }
+      }); 
+      //$('a[rel!=ext]').click(function() { $(window).off('beforeunload') });
+    </script> 
 
   </body>
 

@@ -1,7 +1,6 @@
 @extends('master')
 
 
-
 @section('head')
 <meta name="csrf-token" content="<?= csrf_token() ?>">
 
@@ -48,7 +47,7 @@
     var currency = currencies[i];
     currencyMap[currency.id] = currency;
   }				
-  var NINJA = {};
+  var NINJA = NINJA || {};
   NINJA.parseFloat = function(str) {
     if (!str) return '';
     str = (str+'').replace(/[^0-9\.\-]/g, '');
@@ -90,8 +89,13 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
+<<<<<<< HEAD
       <a href="{{ URL::to('/') }}" class='navbar-brand'>
         CEDASE
+=======
+      <a href="{{ Utils::isNinja() || Auth::check() ? URL::to('/') : NINJA_URL }}" class='navbar-brand'>
+        <img src="{{ asset('images/invoiceninja-logo.png') }}" style="height:18px;width:auto"/>
+>>>>>>> remotes/origin/master
       </a>	    
     </div>
 
@@ -109,45 +113,53 @@
       <div class="navbar-form navbar-right">
         @if (Auth::check() && !Auth::user()->registered)
         {{ Button::sm_success_primary(trans('texts.sign_up'), array('id' => 'signUpButton', 'data-toggle'=>'modal', 'data-target'=>'#signUpModal')) }} &nbsp;
+        @endif
 
-        @if (Auth::check() && Auth::user()->showSignUpPopOver())
-        <button id="signUpPopOver" type="button" class="btn btn-default" data-toggle="popover" data-placement="bottom" data-content="{{ trans('texts.sign_up_to_save') }}" data-html="true" style="display:none">
+        @if (Auth::user()->getPopOverText() && !Utils::isRegistered())
+        <button id="ninjaPopOver" type="button" class="btn btn-default" data-toggle="popover" data-placement="bottom" data-content="{{ Auth::user()->getPopOverText() }}" data-html="true" style="display:none">
           {{ trans('texts.sign_up') }}
         </button>
+        @endif
 
+        @if (Auth::user()->getPopOverText())
         <script>
           $(function() {
-            $('#signUpPopOver').show().popover('show').hide();
+            $('#ninjaPopOver').show().popover('show').hide();
             $('body').click(function() {
-              $('#signUpPopOver').popover('hide');
+              $('#ninjaPopOver').popover('hide');
             });    
           });
         </script>
         @endif
 
-        @endif
-
         <div class="btn-group">
           <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
             <span id="myAccountButton">
-              @if (Auth::user()->registered)
-              {{ Auth::user()->getFullName() }}
-              @else			  
-              {{ trans('texts.guest') }}
-              @endif
+              {{ Auth::user()->getDisplayName() }}
             </span>
             <span class="caret"></span>
           </button>			
           <ul class="dropdown-menu" role="menu">
-            <li>{{ link_to('company/details', trans('texts.company_details')) }}</li>
-            <li>{{ link_to('company/payments', trans('texts.online_payments')) }}</li>
-            <li>{{ link_to('company/notifications', trans('texts.notifications')) }}</li>
-            <li>{{ link_to('company/import_export', trans('texts.import_export')) }}</li>
+            <li>{{ link_to('company/details', uctrans('texts.company_details')) }}</li>
+            <li>{{ link_to('company/payments', uctrans('texts.online_payments')) }}</li>
+            <li>{{ link_to('company/notifications', uctrans('texts.notifications')) }}</li>
+            <li>{{ link_to('company/import_export', uctrans('texts.import_export')) }}</li>
+            <!--<li><a href="{{ url('company/custom_fields') }}">{{ uctrans('texts.custom_fields') . Utils::getProLabel(ACCOUNT_CUSTOM_FIELDS) }}</a></li>-->
 
             <li class="divider"></li>
             <li>{{ link_to('#', trans('texts.logout'), array('onclick'=>'logout()')) }}</li>
           </ul>
         </div>
+
+
+        @if (Auth::user()->getPopOverText() && Utils::isRegistered())
+        <button id="ninjaPopOver" type="button" class="btn btn-default" data-toggle="popover" data-placement="bottom" data-content="{{ Auth::user()->getPopOverText() }}" data-html="true" style="display:none">
+          {{ Auth::user()->getDisplayName() }}
+        </button>
+        @endif
+
+
+
       </div>	
 
 
@@ -256,7 +268,11 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
         {{ Former::populateField('new_email', Auth::user()->email); }}	    		
         @endif
 
-        {{ Former::hidden('path')->value(Request::path()) }}
+        <div style="display:none">
+          {{ Former::text('path')->value(Request::path()) }}
+          {{ Former::text('go_pro') }}
+        </div>
+
         {{ Former::text('new_first_name')->label(trans('texts.first_name')) }}
         {{ Former::text('new_last_name')->label(trans('texts.last_name')) }}
         {{ Former::text('new_email')->label(trans('texts.email')) }}	    	
@@ -286,7 +302,7 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
 
       <div class="modal-footer" id="signUpFooter" style="margin-top: 0px">	      	
         <button type="button" class="btn btn-default" data-dismiss="modal">{{ trans('texts.close') }} <i class="glyphicon glyphicon-remove-circle"></i></button>
-        <button type="button" class="btn btn-primary" id="saveSignUpButton" onclick="validateServerSignUp()" disabled>{{ trans('texts.save') }} <i class="glyphicon glyphicon-floppy-disk"></i></button>	      	
+        <button type="button" class="btn btn-primary" id="saveSignUpButton" onclick="validateServerSignUp()" disabled>{{ trans('texts.save') }} <i class="glyphicon glyphicon-floppy-disk"></i></button>
       </div>
     </div>
   </div>
@@ -315,8 +331,53 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
 </div>
 @endif
 
+<<<<<<< HEAD
 @if (!Utils::isNinjaProd())    
 <div class="container">{{ trans('texts.powered_by') }} <a href="https://invoices.cedase.com/" target="_blank">InvoiceNinja.com</a></div>
+=======
+@if (Auth::check() && !Auth::user()->isPro())
+  <div class="modal fade" id="proPlanModal" tabindex="-1" role="dialog" aria-labelledby="proPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="min-width:150px">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="proPlanModalLabel">{{ trans('texts.pro_plan_product') }}</h4>
+        </div>
+
+        <div style="background-color: #fff; padding-left: 16px; padding-right: 16px" id="proPlanDiv">
+          &nbsp; 
+          {{-- trans('texts.') --}}
+          &nbsp;
+      </div>
+
+
+      <div style="padding-left:40px;padding-right:40px;display:none;min-height:130px" id="proPlanWorking">
+        <h3>{{ trans('texts.working') }}...</h3>
+        <div class="progress progress-striped active">
+          <div class="progress-bar"  role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div style="background-color: #fff; padding-right:20px;padding-left:20px; display:none" id="proPlanSuccess">
+        &nbsp;<br/>
+        {{ trans('texts.pro_plan_success') }}
+        <br/>&nbsp;
+      </div>
+
+       <div class="modal-footer" style="margin-top: 0px" id="proPlanFooter">
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{ trans('texts.close') }}</button>          
+          <button type="button" class="btn btn-primary" id="proPlanButton" onclick="submitProPlan()">{{ trans('texts.sign_up') }}</button>                    
+       </div>     
+      </div>
+    </div>
+  </div>
+
+
+@endif
+
+@if (!Utils::isNinjaProd() && !Utils::isNinjaDev())    
+<div class="container">{{ trans('texts.powered_by') }} <a href="https://www.invoiceninja.com/" target="_blank">InvoiceNinja.com</a></div>
+>>>>>>> remotes/origin/master
 @endif
 
 <p>&nbsp;</p>
@@ -396,11 +457,12 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
       data: 'new_email=' + encodeURIComponent($('form.signUpForm #new_email').val()) + 
       '&new_password=' + encodeURIComponent($('form.signUpForm #new_password').val()) + 
       '&new_first_name=' + encodeURIComponent($('form.signUpForm #new_first_name').val()) + 
-      '&new_last_name=' + encodeURIComponent($('form.signUpForm #new_last_name').val()),
+      '&new_last_name=' + encodeURIComponent($('form.signUpForm #new_last_name').val()) +
+      '&go_pro=' + $('#go_pro').val(),
       success: function(result) { 
         if (result) {
           localStorage.setItem('guest_key', '');
-          isRegistered = true;
+          NINJA.isRegistered = true;
           $('#signUpButton').hide();
           $('#myAccountButton').html(result);                            
         }            
@@ -420,18 +482,48 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
   }
   @endif
 
-  window.isRegistered = {{ Auth::check() && Auth::user()->registered ? 'true' : 'false' }};
   function logout(force)
   {
-    if (force || isRegistered) {
+    if (force) {
+      NINJA.formIsChanged = false;
+    }
+
+    if (force || NINJA.isRegistered) {            
       window.location = '{{ URL::to('logout') }}';
     } else {
       $('#logoutModal').modal('show');	
     }
   }
 
-  $(function() 
-  {
+  @if (Auth::check() && !Auth::user()->isPro())
+  function showProPlan() {
+    $('#proPlanModal').modal('show');       
+  }
+
+  function submitProPlan() {
+
+    if (NINJA.isRegistered) {
+      $('#proPlanDiv, #proPlanFooter').hide();
+      $('#proPlanWorking').show();
+
+      $.ajax({
+        type: 'POST',
+        url: '{{ URL::to('account/go_pro') }}',
+        success: function(result) { 
+          $('#proPlanSuccess, #proPlanFooter').show();
+          $('#proPlanWorking, #proPlanButton').hide();
+        }
+      });     
+    } else {
+      $('#proPlanModal').modal('hide');
+      $('#go_pro').val('true');
+      showSignUp();
+    }
+  }
+  @endif
+
+
+  $(function() {
     $('#search').focus(function(){
       if (!window.hasOwnProperty('searchData')) {
         $.get('{{ URL::route('getSearchData') }}', function(data) {  						
@@ -476,24 +568,11 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
         }
       });
     })
+    @endif
 
-/*
-$(window).on('beforeunload', function() {
-return true;
-});	
-$('form').submit(function() { $(window).off('beforeunload') });
-$('a[rel!=ext]').click(function() { $(window).off('beforeunload') });
-*/
-@endif
+    @yield('onReady')
 
-@if (false && Session::has('message'))
-setTimeout(function() {
-  $('.alert-info').fadeOut();
-}, 3000);
-@endif		
-
-@yield('onReady')
-});
+  });
 
 </script>  
 

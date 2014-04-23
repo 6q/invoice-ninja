@@ -75,6 +75,11 @@ class User extends ConfideUser implements UserInterface, RemindableInterface
 		return $this->email;
 	}
 
+	public function isPro()
+	{
+		return $this->account->isPro();
+	}
+
 	public function getDisplayName()
 	{
 		if ($this->getFullName())
@@ -104,38 +109,37 @@ class User extends ConfideUser implements UserInterface, RemindableInterface
 		}
 	}	
 
-	public function isPro()
-	{
-		if (!Auth::check()) 
-		{
-			return false;
-		}
-
-		$datePaid = $this->account->pro_plan_paid;
-
-		if (!$datePaid || $datePaid == '0000-00-00')
-		{
-			return false;
-		}
-
-		$today = new DateTime('now');
-		$datePaid = DateTime::createFromFormat('Y-m-d', $datePaid);		
-		$interval = $today->diff($datePaid);
-		
-		return $interval->y == 0;
-	}
-
 	public function showGreyBackground()
 	{
 		return !$this->theme_id || in_array($this->theme_id, [2, 3, 5, 6, 7, 8, 10, 11, 12]);
 	}
 
-	public function showSignUpPopOver()
+	public function getRequestsCount()
 	{
-		$count = Session::get(SESSION_COUNTER, 0);
-		Session::put(SESSION_COUNTER, ++$count);
+		return Session::get(SESSION_COUNTER, 0);
+	}
 
-		return $count == 1 || $count % 7 == 0;
+	public function getPopOverText()
+	{
+		if (!Auth::check())
+		{
+			return false;
+		}
+
+		$count = self::getRequestsCount();
+		if ($count == 1 || $count % 5 == 0)
+		{
+			if (!Utils::isRegistered())
+			{
+				return trans('texts.sign_up_to_save');
+			}
+			else if (!Auth::user()->account->name)
+			{
+				return trans('texts.set_name');
+			}
+		}
+
+		return false;
 	}
 
 	public function afterSave($success=true, $forced = false)
@@ -149,4 +153,24 @@ class User extends ConfideUser implements UserInterface, RemindableInterface
 			return true;
 		}	
 	}
+
+	public function getMaxNumClients()
+	{
+		return $this->isPro() ? MAX_NUM_CLIENTS_PRO : MAX_NUM_CLIENTS;
+	}
+
+	public function getRememberToken()
+	{
+	    return $this->remember_token;
+	}
+
+	public function setRememberToken($value)
+	{
+	    $this->remember_token = $value;
+	}
+
+	public function getRememberTokenName()
+	{
+	    return 'remember_token';
+	}	
 }

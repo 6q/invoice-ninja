@@ -13,6 +13,9 @@
 
 App::before(function($request)
 {
+  $count = Session::get(SESSION_COUNTER, 0);
+  Session::put(SESSION_COUNTER, ++$count);
+  
   if (App::environment() == ENV_PRODUCTION)
   {
     if (!Request::secure()) 
@@ -24,12 +27,22 @@ App::before(function($request)
   if (Input::has('lang'))
   {
     $locale = Input::get('lang');
-    Session::set(SESSION_LOCALE, $locale);
     App::setLocale($locale);
+    Session::set(SESSION_LOCALE, $locale);    
+
+    if (Auth::check())
+    {
+      if ($language = Language::whereLocale($locale)->first())
+      {
+        $account = Auth::user()->account;
+        $account->language_id = $language->id;
+        $account->save();
+      }
+    }
   } 
   else if (Auth::check())
   {
-    $locale = Session::get(SESSION_LOCALE, DEFUALT_LOCALE);
+    $locale = Session::get(SESSION_LOCALE, DEFAULT_LOCALE);
     App::setLocale($locale);    
   }
 });

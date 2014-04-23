@@ -29,28 +29,29 @@
 
 		$(function() {
 			window.invoice = {{ $invoice->toJson() }};
+			window.logoImages = {};
 
-	    invoice.imageLogo1 = "{{ HTML::image_data('images/report_logo1.jpg') }}";
-	    invoice.imageLogoWidth1 =120;
-	    invoice.imageLogoHeight1 = 40
+	    logoImages.imageLogo1 = "{{ HTML::image_data('images/report_logo1.jpg') }}";
+	    logoImages.imageLogoWidth1 =120;
+	    logoImages.imageLogoHeight1 = 40
 
-	    invoice.imageLogo2 = "{{ HTML::image_data('images/report_logo2.jpg') }}";
-	    invoice.imageLogoWidth2 =325/2;
-	    invoice.imageLogoHeight2 = 81/2;
+	    logoImages.imageLogo2 = "{{ HTML::image_data('images/report_logo2.jpg') }}";
+	    logoImages.imageLogoWidth2 =325/2;
+	    logoImages.imageLogoHeight2 = 81/2;
 
-	    invoice.imageLogo3 = "{{ HTML::image_data('images/report_logo3.jpg') }}";
-	    invoice.imageLogoWidth3 =325/2;
-	    invoice.imageLogoHeight3 = 81/2;
+	    logoImages.imageLogo3 = "{{ HTML::image_data('images/report_logo3.jpg') }}";
+	    logoImages.imageLogoWidth3 =325/2;
+	    logoImages.imageLogoHeight3 = 81/2;
 
 			@if (file_exists($invoice->client->account->getLogoPath()))
 				invoice.image = "{{ HTML::image_data($invoice->client->account->getLogoPath()) }}";
 				invoice.imageWidth = {{ $invoice->client->account->getLogoWidth() }};
 				invoice.imageHeight = {{ $invoice->client->account->getLogoHeight() }};
 			@endif
-			var doc = generatePDF(invoice, true);
+			var doc = generatePDF(invoice);
 			if (!doc) return;
 			var string = doc.output('datauristring');
-			
+						
 			if (isFirefox || (isChrome && !isChromium)) {
 				$('#theFrame').attr('src', string).show();
 			} else {
@@ -76,7 +77,7 @@
 		var invoiceLabels = {{ json_encode($invoiceLabels) }};
 
 		function onDownloadClick() {
-			var doc = generatePDF(invoice);
+			var doc = generatePDF(invoice, true);
 			doc.save('Invoice-' + invoice.invoice_number + '.pdf');
 		}
 

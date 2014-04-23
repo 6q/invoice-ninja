@@ -9,7 +9,7 @@
 <div class="row">
 	<!--<h3>{{ $title }} Client</h3>-->
 
-	{{ Former::open($url)->addClass('col-md-12 main_form')->method($method)->rules(array(
+	{{ Former::open($url)->addClass('col-md-12 warn-on-exit')->method($method)->rules(array(
   		'email' => 'email|required'  		
 	)); }}
 
@@ -25,7 +25,15 @@
 			{{ Former::text('name')->data_bind("attr { placeholder: placeholderName }") }}
 			{{ Former::text('website') }}
 			{{ Former::text('work_phone') }}
-
+			
+			@if (Auth::user()->isPro())				
+				@if ($customLabel1)
+					{{ Former::text('custom_value1')->label($customLabel1) }}
+				@endif
+				@if ($customLabel2)
+					{{ Former::text('custom_value2')->label($customLabel2) }}
+				@endif
+			@endif
 
 			{{ Former::legend('address') }}
 			{{ Former::text('address1') }}

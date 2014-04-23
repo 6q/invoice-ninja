@@ -16,7 +16,7 @@
 		</ol>  
 	@endif
 
-	{{ Former::open($url)->method($method)->addClass('main_form')->rules(array(
+	{{ Former::open($url)->method($method)->addClass('warn-on-exit')->rules(array(
 		'client' => 'required',
 		'email' => 'required',
 		'product_key' => 'max:20',
@@ -274,8 +274,8 @@
 	<iframe id="theFrame" style="display:none" frameborder="1" width="100%" height="1180"></iframe>
 	<canvas id="theCanvas" style="display:none;width:100%;border:solid 1px #CCCCCC;"></canvas>
 
-	@if (false && !Auth::user()->isPro())
-		{{ trans('texts.pro_plan.remove_logo', ['link'=>link_to('account/enable_pro_plan', trans('texts.pro_plan.remove_logo_link'))]) }}		
+	@if (!Auth::user()->account->isPro())
+		{{ trans('texts.pro_plan.remove_logo', ['link'=>'<a href="#" onclick="showProPlan()">'.trans('texts.pro_plan.remove_logo_link').'</a>']) }}
 	@endif
 
 	<div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="clientModalLabel" aria-hidden="true">
@@ -294,7 +294,17 @@
 				{{ Former::text('name')->data_bind("value: name, valueUpdate: 'afterkeydown', attr { placeholder: name.placeholder }") }}
 				{{ Former::text('website')->data_bind("value: website, valueUpdate: 'afterkeydown'") }}
 				{{ Former::text('work_phone')->data_bind("value: work_phone, valueUpdate: 'afterkeydown'") }}
-				
+
+				@if (Auth::user()->isPro())				
+					@if ($account->custom_client_label1)
+						{{ Former::text('custom_value1')->label($account->custom_client_label1)
+							->data_bind("value: custom_value1, valueUpdate: 'afterkeydown'") }}
+					@endif
+					@if ($account->custom_client_label2)
+						{{ Former::text('custom_value2')->label($account->custom_client_label2)
+							->data_bind("value: custom_value2, valueUpdate: 'afterkeydown'") }}
+					@endif
+				@endif				
 				
 				{{ Former::legend('address') }}
 				{{ Former::text('address1')->data_bind("value: address1, valueUpdate: 'afterkeydown'") }}
@@ -423,16 +433,16 @@
 		</div>
 
 	     <div class="modal-footer" style="margin-top: 0px">
-	      	<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+	      	<button type="button" class="btn btn-primary" data-dismiss="modal">{{ trans('texts.close') }}</button>
 	     </div>
 	  		
 	    </div>
 	  </div>
 	</div>
 
-
-
 	{{ Former::close() }}
+
+
 	</div>
 
 	<script type="text/javascript">
@@ -545,17 +555,12 @@
 	});	
 
 	function applyComboboxListeners() {
-		$('.invoice-table input, .invoice-table select, .invoice-table textarea').on('blur', function() {
-			//if (value != $(this).val()) refreshPDF();
+		var selectorStr = '.invoice-table input, .invoice-table select, .invoice-table textarea';		
+		$(selectorStr).off('blur').on('blur', function() {
 			refreshPDF();
 		});
 
-		var value;		
-		$('.datalist').on('focus', function() {
-			value = $(this).val();
-		}).on('blur', function() {
-			if (value != $(this).val()) refreshPDF();
-		}).on('input', function() {			
+		$('.datalist').on('input', function() {			
 			var key = $(this).val();
 			for (var i=0; i<products.length; i++) {
 				var product = products[i];
@@ -572,28 +577,26 @@
 
 	function createInvoiceModel() {
 		var invoice = ko.toJS(model).invoice;		
-		
+		invoice.is_pro = {{ Auth::user()->isPro() ? 'true' : 'false' }};
+
 		@if (file_exists($account->getLogoPath()))
 			invoice.image = "{{ HTML::image_data($account->getLogoPath()) }}";
 			invoice.imageWidth = {{ $account->getLogoWidth() }};
 			invoice.imageHeight = {{ $account->getLogoHeight() }};
 		@endif
 
+		window.logoImages = {};
+    logoImages.imageLogo1 = "{{ HTML::image_data('images/report_logo1.jpg') }}";
+		logoImages.imageLogoWidth1 =120;
+    logoImages.imageLogoHeight1 = 40
 
-    //define logo images
+    logoImages.imageLogo2 = "{{ HTML::image_data('images/report_logo2.jpg') }}";
+    logoImages.imageLogoWidth2 =325/2;
+    logoImages.imageLogoHeight2 = 81/2;
 
-
-    invoice.imageLogo1 = "{{ HTML::image_data('images/report_logo1.jpg') }}";
-    invoice.imageLogoWidth1 =120;
-    invoice.imageLogoHeight1 = 40
-
-    invoice.imageLogo2 = "{{ HTML::image_data('images/report_logo2.jpg') }}";
-    invoice.imageLogoWidth2 =325/2;
-    invoice.imageLogoHeight2 = 81/2;
-
-    invoice.imageLogo3 = "{{ HTML::image_data('images/report_logo3.jpg') }}";
-    invoice.imageLogoWidth3 =325/2;
-    invoice.imageLogoHeight3 = 81/2;
+    logoImages.imageLogo3 = "{{ HTML::image_data('images/report_logo3.jpg') }}";
+    logoImages.imageLogoWidth3 =325/2;
+    logoImages.imageLogoHeight3 = 81/2;
 
 
     return invoice;
@@ -614,50 +617,53 @@
 	var isRefreshing = false;
 	var needsRefresh = false;
 
-	function getPDFString() {
+	function getPDFString() {		
 		var invoice = createInvoiceModel();
-		var doc = generatePDF(invoice, invoiceLabels);
+		var doc = generatePDF(invoice);
 		if (!doc) return;
 		return doc.output('datauristring');
 	}
+
 	function refreshPDF() {
 		if ({{ Auth::user()->force_pdfjs ? 'false' : 'true' }} && (isFirefox || (isChrome && !isChromium))) {
 			var string = getPDFString();
+			if (!string) return;
 			$('#theFrame').attr('src', string).show();		
 		} else {			
 			if (isRefreshing) {
 				needsRefresh = true;
 				return;
 			}
-			isRefreshing = true;
 			var string = getPDFString();
+			if (!string) return;
+			isRefreshing = true;
 			var pdfAsArray = convertDataURIToBinary(string);	
-		    PDFJS.getDocument(pdfAsArray).then(function getPdfHelloWorld(pdf) {
+	    PDFJS.getDocument(pdfAsArray).then(function getPdfHelloWorld(pdf) {
 
-		      pdf.getPage(1).then(function getPageHelloWorld(page) {
-		        var scale = 1.5;
-		        var viewport = page.getViewport(scale);
+	      pdf.getPage(1).then(function getPageHelloWorld(page) {
+	        var scale = 1.5;
+	        var viewport = page.getViewport(scale);
 
-		        var canvas = document.getElementById('theCanvas');
-		        var context = canvas.getContext('2d');
-		        canvas.height = viewport.height;
-		        canvas.width = viewport.width;
+	        var canvas = document.getElementById('theCanvas');
+	        var context = canvas.getContext('2d');
+	        canvas.height = viewport.height;
+	        canvas.width = viewport.width;
 
-		        page.render({canvasContext: context, viewport: viewport});
-		      	$('#theCanvas').show();
-		      	isRefreshing = false;
-		      	if (needsRefresh) {
-		      		needsRefresh = false;
-		      		refreshPDF();
-		      	}
-		      });
-		    });	
+	        page.render({canvasContext: context, viewport: viewport});
+	      	$('#theCanvas').show();
+	      	isRefreshing = false;
+	      	if (needsRefresh) {
+	      		needsRefresh = false;
+	      		refreshPDF();
+	      	}
+	      });
+	    });	
 		}
 	}
 
 	function onDownloadClick() {
 		var invoice = createInvoiceModel();
-		var doc = generatePDF(invoice);
+		var doc = generatePDF(invoice, true);
 		doc.save('Invoice-' + $('#invoice_number').val() + '.pdf');
 	}
 
@@ -958,7 +964,7 @@
 			}
 			else
 			{
-				if (clients.length > {{ MAX_NUM_CLIENTS}})
+				if (clients.length > {{ Auth::user()->getMaxNumClients() }})
 				{
 					return '';
 				}
@@ -1160,6 +1166,8 @@
 		self.public_id = ko.observable(0);
 		self.name = ko.observable('');
 		self.work_phone = ko.observable('');
+		self.custom_value1 = ko.observable('');
+		self.custom_value2 = ko.observable('');
 		self.private_notes = ko.observable('');
 		self.address1 = ko.observable('');
 		self.address2 = ko.observable('');
@@ -1237,16 +1245,22 @@
 		self.email = ko.observable('');
 		self.phone = ko.observable('');		
 		self.send_invoice = ko.observable(false);
+		self.invitation_link = ko.observable('');		
 
 		self.email.display = ko.computed(function() {
 			var str = '';
 			if (self.first_name() || self.last_name()) {
 				str += self.first_name() + ' ' + self.last_name() + '<br/>';
 			}			
-			return str + self.email();
+			str += self.email();
+
+			if (self.invitation_link()) {
+				str += '<br/><a href="' + self.invitation_link() + '" target="_blank">{{ trans('texts.view_invoice') }}</a>';
+			}
+			
+			return str;
 		});		
 		
-
 		if (data) {
 			ko.mapping.fromJS(data, {}, this);		
 		}		
