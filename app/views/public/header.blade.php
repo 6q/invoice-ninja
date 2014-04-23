@@ -87,15 +87,15 @@
       
           <!--<a href="https://twitter.com/invoiceninja" class="twitter-follow-button" data-show-count="false" data-size="large">Follow @invoiceninja</a>
           <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>-->
-          <!--<div class="fb-like" data-href="https://www.invoiceninja.com" data-layout="button" data-action="like" data-show-faces="false" data-share="false"></div>          -->
-          <div class="fb-share-button" data-href="https://www.invoiceninja.com/" data-type="button"></div>
+          <!--<div class="fb-like" data-href="https://invoices.cedase.com" data-layout="button" data-action="like" data-show-faces="false" data-share="false"></div>          -->
+          <div class="fb-share-button" data-href="https://invoices.cedase.com/" data-type="button"></div>
           &nbsp;
 
-          <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://www.invoiceninja.com/" data-via="invoiceninja" data-related="hillelcoren" data-count="none" data-text="Free online invoicing">Tweet</a>
+          <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://invoices.cedase.com/" data-via="invoiceninja" data-related="hillelcoren" data-count="none" data-text="Free online invoicing">Tweet</a>
           <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
           &nbsp;
           <!-- Place this tag where you want the +1 button to render. -->
-          <div class="g-plusone" data-size="medium" data-width="300" data-href="https://www.invoiceninja.com/" data-annotation="none" data-count="false" data-recommendations="false"></div>
+          <div class="g-plusone" data-size="medium" data-width="300" data-href="https://invoices.cedase.com/" data-annotation="none" data-count="false" data-recommendations="false"></div>
 
           <!-- Place this tag after the last +1 button tag. -->
           <script type="text/javascript">
@@ -111,7 +111,7 @@
           <script src="//platform.linkedin.com/in.js" type="text/javascript">
             lang: en_US
           </script>
-          <script type="IN/Share" data-url="https://www.invoiceninja.com/"></script>
+          <script type="IN/Share" data-url="https://invoices.cedase.com/"></script>
           -->
                     
           <!--<iframe src="http://ghbtns.com/github-btn.html?user=hillelcoren&repo=invoice-ninja&type=watch" allowtransparency="true" frameborder="0" scrolling="0" width="62" height="20"></iframe>-->

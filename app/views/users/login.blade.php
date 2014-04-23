@@ -57,7 +57,7 @@
 		{{ Former::open('login')->addClass('form-signin') }}
 			<div class="modal-header">
                 <img src="{{ asset('images/icon-login.png') }}" />
-                <h4>Invoice Ninja Account Login</h4></div>
+                <h4>Identificación</h4></div>
             <div class="inner">
 			<p>
 				{{ $errors->first('login_email') }}
@@ -65,13 +65,13 @@
 			</p>
 
 			<p>
-				{{ Form::text('login_email', Input::old('login_email'), array('placeholder' => 'Email address')) }}
-				{{ Form::password('login_password', array('placeholder' => 'Password')) }}
+				{{ Form::text('login_email', Input::old('login_email'), array('placeholder' => 'Dirección Email')) }}
+				{{ Form::password('login_password', array('placeholder' => 'Contraseña')) }}
 			</p>
 
-			<p>{{ Button::success_submit('Let’s go', array('class' => 'btn-lg'))->block() }}</p>
-            <p class="link">
-			{{ link_to('forgot_password', 'Forgot your password?') }}
+			<p>{{ Button::success_submit('Identificarse', array('class' => 'btn-lg'))->block() }}</p>
+            <p class="link" style="display:none">
+			{{ link_to('forgot_password', 'Contraseña olvidada?') }}
             </p>
 		
 			<!-- if there are login errors, show them here -->

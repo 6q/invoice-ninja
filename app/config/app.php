@@ -26,7 +26,7 @@ return array(
 	|
 	*/
 
-	'url' => 'http://www.invoiceninja.com',
+	'url' => 'http://invoices.cedase.com',
 
 	/*
 	|--------------------------------------------------------------------------

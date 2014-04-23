@@ -141,9 +141,8 @@
 
 	function setArchiveEnabled() {
 		var checked = $('tbody :checkbox:checked').length > 0;
-		$('#archive > button').prop('disabled', !checked);	
+		$('#archive > button').prop('disabled', !checked);
 	}
 
 
-	
 @stop

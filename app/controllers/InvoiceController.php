@@ -202,7 +202,7 @@ class InvoiceController extends \BaseController {
 				'invoiceNumber' => $invoiceNumber,
 				'method' => 'POST', 
 				'url' => 'invoices', 
-				'title' => '- New Invoice',
+				'title' => '- Nueva Factura',
 				'client' => $client);
 		$data = array_merge($data, InvoiceController::getViewModel());				
 		return View::make('invoices.edit', $data);

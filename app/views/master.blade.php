@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
 
-    <title>Crear Factura {{ isset($title) ? $title : ' - Facturación Online Gratis' }}</title>
-    <link rel="canonical" href="https://www.crearfactura.com"></link>
+    <title>CEDASE {{ isset($title) ? $title : ' - Facturación Cedase' }}</title>
+    <link rel="canonical" href="https://invoices.cedase.com"></link>
     <link href="{{ asset('favicon.ico') }}" rel="icon" type="image/x-icon">    
     
     <link href='//fonts.googleapis.com/css?family=Roboto:400,700,900,100' rel='stylesheet' type='text/css'>
@@ -13,11 +13,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:site_name" content="Cedase"></meta>
-    <meta property="og:url" content="https://www.crearfactura.com"></meta>
-    <meta property="og:title" content="Invoice Ninja"></meta>
-    <meta property="og:image" content="https://www.crearfactura.com/images/social.jpg"></meta>
-    <meta property="og:description" content="Simple, Intuitive Invoicing."></meta>
-    <meta name="keywords" content="Invoice Ninja"></meta>    
+    <meta property="og:url" content="https://invoices.cedase.com"></meta>
+    <meta property="og:title" content="Cedase"></meta>
+    <meta property="og:image" content="https://www.cedase.com/images/social.jpg"></meta>
+    <meta property="og:description" content="Facturación de Cedase."></meta>
+    <meta name="keywords" content="Cedase Facturación"></meta>    
     
     <script src="{{ asset('vendor/jquery/dist/jquery.min.js') }}" type="text/javascript"></script>  
 

@@ -9,7 +9,7 @@ class Utils
 
 	public static function isNinjaProd()
 	{
-		return $_SERVER['SERVER_NAME'] == 'www.invoiceninja.com';
+		return $_SERVER['SERVER_NAME'] == 'invoices.cedase.com';
 	}
 
 	public static function basePath() 
@@ -122,7 +122,7 @@ class Utils
 			$currency = Currency::remember(DEFAULT_QUERY_CACHE)->find(1);		
 		}
 		
-		return $currency->symbol . number_format($value, $currency->precision, $currency->decimal_separator, $currency->thousand_separator);
+		return number_format($value, $currency->precision, $currency->decimal_separator, $currency->thousand_separator).' €';
 	}
 
 	public static function pluralize($string, $count) 

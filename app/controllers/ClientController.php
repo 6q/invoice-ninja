@@ -76,7 +76,7 @@ class ClientController extends \BaseController {
 			'client' => null, 
 			'method' => 'POST', 
 			'url' => 'clients', 
-			'title' => '- New Client',
+			'title' => '- Nuevo Cliente',
 			'sizes' => Size::remember(DEFAULT_QUERY_CACHE)->orderBy('id')->get(),
 			'industries' => Industry::remember(DEFAULT_QUERY_CACHE)->orderBy('id')->get(),
 			'paymentTerms' => PaymentTerm::remember(DEFAULT_QUERY_CACHE)->orderBy('num_days')->get(['name', 'num_days']),
