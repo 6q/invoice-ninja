@@ -629,7 +629,7 @@ function GetPdf(invoice,checkMath,report_id){
     footerLeft: 420,
     tablePadding: 12,
     tableTop: 250,
-    descriptionLeft: 162,
+    descriptionLeft: 150,
     unitCostRight: 410,
     qtyRight: 480,
     taxRight: 480,
@@ -703,10 +703,10 @@ function GetReportTemplate1(doc, invoice, layout, checkMath)
 
 
     doc.setFontSize(9);
-    SetPdfColor('LightBlue',doc);
+    SetPdfColor('Black',doc);
     displayAccount(doc, invoice, 220, layout.accountTop, layout);
 
-    SetPdfColor('LightBlue',doc);
+
     doc.setFontSize('11');
     doc.text(50, layout.headerTop, invoiceLabels.invoice.toUpperCase());
 
@@ -714,18 +714,17 @@ function GetReportTemplate1(doc, invoice, layout, checkMath)
     //doc.line(30, y, 560, y); // horizontal line
 
 
-    SetPdfColor('Black',doc); //set black color
     doc.setFontSize(9);
-
+    SetPdfColor('Black',doc);
     var detailsHeight = displayInvoice(doc, invoice, 50, 170, layout);
-    layout.tableTop = Math.max(layout.tableTop, layout.headerTop + detailsHeight + (3 * layout.rowHeight));
+    layout.tableTop = Math.max(layout.tableTop, layout.headerTop + 4 + (3 * layout.rowHeight));
 
     displayClient(doc, invoice, 220, 170, layout);
 
     doc.setLineWidth(0.3);        
     doc.setDrawColor(200,200,200);
     doc.line(layout.marginLeft - layout.tablePadding, layout.headerTop + 6, layout.marginRight + layout.tablePadding, layout.headerTop + 6);
-    doc.line(layout.marginLeft - layout.tablePadding, layout.headerTop + detailsHeight + 14, layout.marginRight + layout.tablePadding, layout.headerTop + detailsHeight + 14);
+    doc.line(layout.marginLeft - layout.tablePadding, layout.headerTop + 60 + 14, layout.marginRight + layout.tablePadding, layout.headerTop + 60 + 14);
  
 
     //doc.setDrawColor(220,220,220);
@@ -767,9 +766,9 @@ function GetReportTemplate1(doc, invoice, layout, checkMath)
     displayNotesAndTerms(doc, layout, invoice, y);
     y += displaySubtotals(doc, layout, invoice, y, layout.unitCostRight);
 
-    SetPdfColor('LightBlue',doc);
-    doc.setFontType("bold");
-    doc.text(layout.marginLeft+5, 790, "    CERTIFICACIONES DE AUTOREGULACIÓN SECTORIAL, SL.  |  B65218067  |  cedase@cedase.com");
+
+    doc.setFontSize(8);
+    doc.text(layout.marginLeft+60, 790, "    CERTIFICACIONES DE AUTOREGULACIÓN SECTORIAL, SL.  |  B65218067  |  cedase@cedase.com");
 
 
     return doc;
@@ -1263,7 +1262,8 @@ function displayClient(doc, invoice, x, y, layout) {
     return;
   }  
   var data = [
-    concatStrings(getClientDisplayName(client),"            ", client.address2),
+    getClientDisplayName(client),
+    client.address2,
     client.address1,
     concatStrings(client.city, client.state, client.postal_code),
   ];
@@ -1290,7 +1290,6 @@ function getInvoiceDetails(invoice) {
     {'custom_label2': invoice.account.custom_value2},
     {'custom_client_label1': invoice.client.custom_value1},
     {'custom_client_label2': invoice.client.custom_value2},
-    {'balance_due': " "},
   ]; 
 }
 
@@ -1619,7 +1618,7 @@ function displayInvoiceItems(doc, invoice, layout) {
     y += 4;
 
     if (invoice.invoice_design_id == 1) {
-      SetPdfColor('LightBlue', doc);
+      SetPdfColor('Black', doc);
     } else if (invoice.invoice_design_id == 2) {
       SetPdfColor('SomeGreen', doc);
     } else if (invoice.invoice_design_id == 3) {

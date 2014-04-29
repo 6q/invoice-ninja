@@ -45,7 +45,7 @@ return array(
   'line_total' => 'Total línea',
   'subtotal' => 'Subtotal',
   'paid_to_date' => 'Importe Total',
-  'balance_due' => ' ',
+  'balance_due' => 'Pendiente',
   'invoice_design_id' => 'Diseño',
   'terms' => 'Términos',
   'your_invoice' => 'Tu factura',
