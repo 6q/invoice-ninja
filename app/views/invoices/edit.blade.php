@@ -11,7 +11,7 @@
 	
 	@if ($invoice)
 		<ol class="breadcrumb">
-			<li>{{ link_to('invoices', 'Invoices') }}</li>
+			<li>{{ link_to('invoices', 'Facturas') }}</li>
 			<li class='active'>{{ $invoice->invoice_number }}</li>
 		</ol>  
 	@endif
@@ -30,7 +30,7 @@
 
     		@if ($invoice)
 				<div class="form-group">
-					<label for="client" class="control-label col-lg-4 col-sm-4">Client</label>
+					<label for="client" class="control-label col-lg-4 col-sm-4">Cliente</label>
 					<div class="col-lg-8 col-sm-8" style="padding-top: 7px">
 						<a id="editClientLink" class="pointer" data-bind="click: $root.showClientForm, text: getClientDisplayName(ko.toJS(client()))"></a>
 					</div>
@@ -62,13 +62,15 @@
 			</div>
 			
 		</div>
-		<div class="col-md-4" id="col_2">
+		<div class="col-md-4" id="col_2" >
+
 			<div data-bind="visible: !is_recurring()">
 				{{ Former::text('invoice_date')->data_bind("datePicker: invoice_date, valueUpdate: 'afterkeydown'")
 							->data_date_format(Session::get(SESSION_DATE_PICKER_FORMAT))->append('<i class="glyphicon glyphicon-calendar" onclick="toggleDatePicker(\'invoice_date\')"></i>') }}
 				{{ Former::text('due_date')->data_bind("datePicker: due_date, valueUpdate: 'afterkeydown'")
 							->data_date_format(Session::get(SESSION_DATE_PICKER_FORMAT))->append('<i class="glyphicon glyphicon-calendar" onclick="toggleDatePicker(\'due_date\')"></i>') }}							
 			</div>
+			<div style="display:none">
 			<div data-bind="visible: is_recurring" style="display: none">
 				{{ Former::select('frequency_id')->options($frequencies)->data_bind("value: frequency_id") }}
 				{{ Former::text('start_date')->data_bind("datePicker: start_date, valueUpdate: 'afterkeydown'")
@@ -86,7 +88,7 @@
 					->inlineHelp($invoice && $invoice->last_sent_date ? 'Last invoice sent ' . Utils::dateToString($invoice->last_sent_date) : '') }}
 			</div>			
 			@endif
-			
+			</div>
 		</div>
 
 		<div class="col-md-4" id="col_2">
@@ -233,10 +235,10 @@
 					</ul>
 				</div>		
 
-				{{-- DropdownButton::normal('Download PDF',
+				{{-- DropdownButton::normal('Descargar PDF',
 					  Navigation::links(
 					    array(
-					    	array('Download PDF', "javascript:onDownloadClick()"),
+					    	array('Descargar PDF', "javascript:onDownloadClick()"),
 					     	array(Navigation::DIVIDER),
 					     	array('Create Payment', "javascript:onPaymentClick()"),
 					     	array('Create Credit', "javascript:onCreditClick()"),

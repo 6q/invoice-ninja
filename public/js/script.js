@@ -93,10 +93,6 @@ function GetReportTemplate4(doc, invoice, layout, checkMath) {
   var totalX = layout.headerRight - (doc.getStringUnitWidth(total) * doc.internal.getFontSize());
   doc.text(totalX, y, total);   
 
-  if (!invoice.is_pro) {
-    doc.setFontType("normal");
-    doc.text(layout.marginLeft, 790, "Created by InvoiceNinja.com");
-  }
 
   return doc;     
 }
@@ -658,11 +654,11 @@ function GetPdf(invoice,checkMath,report_id){
 
   //Set PDF properities
   doc.setProperties({
-      title: 'Invoice ' + invoice.invoice_number,
+      title: 'Factura ' + invoice.invoice_number,
       subject: '',
-      author: 'InvoiceNinja.com',
+      author: 'CEDASE',
       keywords: 'pdf, invoice',
-      creator: 'InvoiceNinja.com'
+      creator: 'cedase.com'
   });
 
   //set default style for report
@@ -767,22 +763,14 @@ function GetReportTemplate1(doc, invoice, layout, checkMath)
 
     //doc.rect(x1, y1, w2, h2, 'FD');
 
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     displayNotesAndTerms(doc, layout, invoice, y);
     y += displaySubtotals(doc, layout, invoice, y, layout.unitCostRight);
 
-
-    doc.setFontSize(10);
-    Msg = invoiceLabels.balance_due;
-    var TmpMsgX = layout.unitCostRight-(doc.getStringUnitWidth(Msg) * doc.internal.getFontSize());
-    
-    doc.text(TmpMsgX, y, Msg);
-
     SetPdfColor('LightBlue',doc);
-    AmountText = formatMoney(invoice.balance_amount, currencyId);
-    headerLeft=layout.headerRight+400;
-    var AmountX = layout.lineTotalRight - (doc.getStringUnitWidth(AmountText) * doc.internal.getFontSize());
-    doc.text(AmountX, y, AmountText);
+    doc.setFontType("bold");
+    doc.text(layout.marginLeft+5, 790, "    CERTIFICACIONES DE AUTOREGULACIÓN SECTORIAL, SL.  |  B65218067  |  cedase@cedase.com");
+
 
     return doc;
 }
@@ -1261,11 +1249,11 @@ function displayAccount(doc, invoice, x, y, layout) {
     account.country ? account.country.name : false
   ];
 
-  var width = doc.getStringUnitWidth(account.name) * doc.internal.getFontSize() * 1.1;
-  width = Math.max(120, width);
+  var width = doc.getStringUnitWidth(account.name) * doc.internal.getFontSize() * 0.5;
+  width = Math.max(50, width);
   x += width;
 
-  displayGrid(doc, invoice, data, x, y, layout);  
+  displayGrid(doc, invoice, data, x, 55, layout);  
 }
 
 
@@ -1275,11 +1263,9 @@ function displayClient(doc, invoice, x, y, layout) {
     return;
   }  
   var data = [
-    getClientDisplayName(client),
-    concatStrings(client.address1, client.address2),
+    concatStrings(getClientDisplayName(client),"            ", client.address2),
+    client.address1,
     concatStrings(client.city, client.state, client.postal_code),
-    client.country ? client.country.name : false,
-    client.contacts[0].email
   ];
 
   displayGrid(doc, invoice, data, x, y, layout, true);
@@ -1304,7 +1290,7 @@ function getInvoiceDetails(invoice) {
     {'custom_label2': invoice.account.custom_value2},
     {'custom_client_label1': invoice.client.custom_value1},
     {'custom_client_label2': invoice.client.custom_value2},
-    {'balance_due': formatMoney(invoice.balance_amount, invoice.client.currency_id)},
+    {'balance_due': " "},
   ]; 
 }
 
@@ -1564,7 +1550,7 @@ function displayInvoiceItems(doc, invoice, layout) {
     var left = layout.marginLeft - layout.tablePadding;
     var width = layout.marginRight + layout.tablePadding;
 
-    var cost = formatMoney(item.cost, currencyId, true);
+    var cost = item.cost;
     var qty = NINJA.parseFloat(item.qty) ? NINJA.parseFloat(item.qty) + '' : '';
     var notes = item.notes;
     var productKey = item.product_key;

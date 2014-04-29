@@ -326,10 +326,6 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
 </div>
 @endif
 
-<<<<<<< HEAD
-@if (!Utils::isNinjaProd())    
-<div class="container">{{ trans('texts.powered_by') }} <a href="https://invoices.cedase.com/" target="_blank">InvoiceNinja.com</a></div>
-=======
 @if (Auth::check() && !Auth::user()->isPro())
   <div class="modal fade" id="proPlanModal" tabindex="-1" role="dialog" aria-labelledby="proPlanModalLabel" aria-hidden="true">
     <div class="modal-dialog" style="min-width:150px">
@@ -370,10 +366,6 @@ Want something changed? We're {{ link_to('https://github.com/hillelcoren/invoice
 
 @endif
 
-@if (!Utils::isNinjaProd() && !Utils::isNinjaDev())    
-<div class="container">{{ trans('texts.powered_by') }} <a href="https://www.invoiceninja.com/" target="_blank">InvoiceNinja.com</a></div>
->>>>>>> remotes/origin/master
-@endif
 
 <p>&nbsp;</p>
 

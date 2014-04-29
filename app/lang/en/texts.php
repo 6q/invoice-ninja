@@ -208,7 +208,7 @@ return array(
   'clients_will_create' => 'clients will be created',
 
   // application messages
-  'created_client' => 'Successfully created client',
+  'created_client' => 'Cliente creado correctamente',
   'created_clients' => 'Successfully created :count clients',
   'updated_settings' => 'Successfully updated settings',
   'removed_logo' => 'Successfully removed logo',
@@ -217,7 +217,7 @@ return array(
   'limit_clients' => 'Sorry, this will exceed the limit of :count clients',
   'payment_error' => 'There was an error processing your payment. Please try again later.',
   'registration_required' => 'Please sign up to email an invoice',
-  'confirmation_required' => 'Please confirm your email address',
+  'confirmation_required' => 'Confirma tu correo electrónico',
 
   'updated_client' => 'Successfully updated client',
   'created_client' => 'Successfully created client',

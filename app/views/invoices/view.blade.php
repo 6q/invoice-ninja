@@ -16,7 +16,7 @@
 		</div>		
 	@else 
 		<div class="pull-right">
-			{{ Button::primary('Download PDF', array('onclick' => 'onDownloadClick()', 'class' => 'btn-lg')) }}
+			{{ Button::primary('Descargar PDF', array('onclick' => 'onDownloadClick()', 'class' => 'btn-lg')) }}
 		</div>		
 	@endif
 	
